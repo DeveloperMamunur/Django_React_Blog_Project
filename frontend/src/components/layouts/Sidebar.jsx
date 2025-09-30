@@ -11,6 +11,9 @@ export default function Sidebar({ isOpen, onToggle }) {
     // ✅ Define menu items with allowed roles
     const menuItems = [
         { path: "/dashboard", label: "Dashboard", icon: "📊", roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
+        { path: "/category", label: "Category", icon: "📦", roles: ["ADMIN"] },
+        { path: "/tags", label: "Tags", icon: "🏷️", roles: ["ADMIN"] },
+        { path: "/blogs", label: "Blogs", icon: "📝", roles: ["ADMIN", "AUTHOR"] },
         { path: "/members", label: "Members", icon: "👥", roles: ["ADMIN"] },
         { path: "/settings", label: "Settings", icon: "⚙️", roles: ["ADMIN"] },
     ];

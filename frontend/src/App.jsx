@@ -11,6 +11,9 @@ import Home from "./pages/frontend/Home";
 import About from "./pages/frontend/About";
 import Contact from "./pages/frontend/Contact";
 import Dashboard from "./pages/backend/Dashboard";
+import Category from "./pages/backend/Category";
+import Tag from "./pages/backend/Tag";
+import Blog from "./pages/backend/Blog";
 import NotFound from "./pages/NotFound";
 
 
@@ -33,6 +36,15 @@ function App() {
             <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR", "USER"]} />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route element={<ProtectedRoute roles={["ADMIN"]} />}>
+                  <Route path="/category" element={<Category />} />
+                  <Route path="/tags" element={<Tag />} />
+                </Route>
+
+                {/* Admin + Author */}
+                <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR"]} />}>
+                  <Route path="/blogs" element={<Blog />} />
+                </Route>
               </Route>
             </Route>
             {/* 404 Not Found */}
