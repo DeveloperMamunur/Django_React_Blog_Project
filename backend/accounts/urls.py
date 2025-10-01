@@ -19,4 +19,7 @@ urlpatterns = [
 
     # Protected Route
     path("protected/", views.CurrentUserView.as_view(), name="current-user"),
+
+    # password change
+    path("change-password/", views.ChangePasswordView.as_view(), name="change-password"),
 ]
