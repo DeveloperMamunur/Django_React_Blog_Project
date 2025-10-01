@@ -8,11 +8,13 @@ export default function DashboardLayouts() {
     const [isOpen, setIsOpen] = useState(true);
     const { darkMode, toggleDarkMode } = useDarkMode();
     
-    const { user, isAuthLoading } = useAuth();
+    const { currentUser, isAuthLoading } = useAuth();
 
-    if (!user && isAuthLoading) {
+    if (!currentUser && isAuthLoading) {
         return <div>Loading...</div>;
     }
+
+    const BASE_URL = "http://localhost:8000"; 
 
     return (
         <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300">
@@ -63,12 +65,21 @@ export default function DashboardLayouts() {
                             )}
                         </button>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-200">{user?.username}</span>
-                            <img
-                                src="https://i.pravatar.cc/40"
-                                alt="Profile"
-                                className="w-8 h-8 rounded-full"
-                            />
+                            <span className="text-sm text-gray-600 dark:text-gray-200">{currentUser?.username}</span>
+                            {currentUser?.avatar ? (
+                                <img
+                                    src={`${BASE_URL}${currentUser.avatar}`}   // ✅ concatenate properly
+                                    alt={currentUser.username}
+                                    className="w-8 h-8 rounded-full"
+                                />
+                                ) : (
+                                <img
+                                    src="https://i.pravatar.cc/40"
+                                    alt="Profile"
+                                    className="w-8 h-8 rounded-full"
+                                />
+                            )}
+                            
                         </div>
                     </div>
                 </header>

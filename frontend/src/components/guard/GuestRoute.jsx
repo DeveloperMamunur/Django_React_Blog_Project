@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
 const GuestRoute = ({ children }) => {
-  const { user, isAuthLoading } = useAuth();
+  const { currentUser, isAuthLoading } = useAuth();
 
   // while auth is still loading, don't redirect too early
   if (isAuthLoading) {
@@ -10,7 +10,7 @@ const GuestRoute = ({ children }) => {
   }
 
   // if user exists, block access to guest pages
-  if (user) {
+  if (currentUser) {
     return <Navigate to="/dashboard" replace />;
   }
 

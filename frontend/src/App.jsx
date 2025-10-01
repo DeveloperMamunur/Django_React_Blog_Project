@@ -1,6 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/guard/ProtectedRoute";
+import GuestRoute from "./components/guard/GuestRoute";
 import FrontendLayouts from "./layouts/FrontendLayouts";
 import DashboardLayout from "./layouts/DashboardLayouts";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -15,6 +16,9 @@ import Category from "./pages/backend/Category";
 import Tag from "./pages/backend/Tag";
 import Blog from "./pages/backend/Blog";
 import NotFound from "./pages/NotFound";
+import User from "./pages/backend/User";
+import Settings from "./pages/backend/Settings";
+import Profile from "./pages/backend/Profile";
 
 
 function App() {
@@ -29,16 +33,27 @@ function App() {
               <Route index element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={<Login />}/>
-              <Route path="/register" element={<Register />}/>
+              <Route path="/login" element={
+                <GuestRoute>
+                  <Login />
+                </GuestRoute>
+              }/>
+              <Route path="/register" element={
+                <GuestRoute>
+                  <Register />
+                </GuestRoute>
+              }/>
             </Route>
             {/* Protected Dashboard */}
             <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR", "USER"]} />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route element={<ProtectedRoute roles={["ADMIN"]} />}>
                   <Route path="/category" element={<Category />} />
                   <Route path="/tags" element={<Tag />} />
+                  <Route path="/users" element={<User />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Route>
 
                 {/* Admin + Author */}

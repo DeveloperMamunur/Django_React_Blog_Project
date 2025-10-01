@@ -15,7 +15,7 @@ import {
 } from "../../utils/permissions";
 
 export default function Blog() {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
     const [blogs, setBlogs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [tags, setTags] = useState([]);
@@ -56,12 +56,12 @@ export default function Blog() {
     }, []);
 
     
-    const onlyAdmin = isAdmin(user)
+    const onlyAdmin = isAdmin(currentUser)
     // Filter blogs based on role
     const filteredBlogs = blogs.filter(blog => {
-        if (!user) return false;
-        if (isAdmin(user)) return true;
-        if (isAuthor(user)) return blog.author?.id === user.id; // critical fix
+        if (!currentUser) return false;
+        if (isAdmin(currentUser)) return true;
+        if (isAuthor(currentUser)) return blog.author?.id === currentUser.id; // critical fix
         return false;
     });
 
@@ -115,7 +115,7 @@ export default function Blog() {
 
     // Delete blog
     const handleDelete = async blog => {
-        if (!canEditOrDeleteBlog(user, blog)) {
+        if (!canEditOrDeleteBlog(currentUser, blog)) {
             alert("You do not have permission to delete this blog.");
             return;
         }
@@ -127,7 +127,7 @@ export default function Blog() {
 
     // Toggle publish/unpublish
     const handlePublish = async blog => {
-        if (!canTogglePublish(user, blog)) {
+        if (!canTogglePublish(currentUser, blog)) {
             alert("You do not have permission to publish/unpublish this blog.");
             return;
         }
@@ -146,7 +146,7 @@ export default function Blog() {
 
     // Toggle Feature
     const handleFeatured = async blog => {
-        if (!canEditOrDeleteBlog(user, blog)) {
+        if (!canEditOrDeleteBlog(currentUser, blog)) {
             alert("Only the author or admin can feature this blog.");
             return;
         }
@@ -165,7 +165,7 @@ export default function Blog() {
 
     // Toggle Status
     const handleStatus = async blog => {
-        if (!canEditOrDeleteBlog(user, blog)) {
+        if (!canEditOrDeleteBlog(currentUser, blog)) {
             alert("Only the author or admin can change status.");
             return;
         }
@@ -196,7 +196,7 @@ export default function Blog() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Blog Management</h2>
-                {(isAdmin(user) || isAuthor(user)) && (
+                {(isAdmin(currentUser) || isAuthor(currentUser)) && (
                     <button
                         onClick={() => openBlogModal()}
                         className="bg-blue-500 text-white px-4 py-2 rounded"
@@ -230,13 +230,13 @@ export default function Blog() {
                             <Button
                                 variant={row.is_active ? "success" : "danger"}
                                 onClick={() => handleStatus(row)}
-                                disabled={!canEditOrDeleteBlog(user, row)}
+                                disabled={!canEditOrDeleteBlog(currentUser, row)}
                             >
                                 {row.is_active ? "✔ Active" : "❌ Inactive"}
                             </Button>
                         );
                     if (col.key === "actions") {
-                        const canEditDelete = canEditOrDeleteBlog(user, row);
+                        const canEditDelete = canEditOrDeleteBlog(currentUser, row);
                         return (
                             <div className="flex gap-2">
                                 <Button variant="info" onClick={() => openBlogDetailsModel(row)}>

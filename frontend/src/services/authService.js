@@ -58,6 +58,54 @@ export const authService = {
             
         }
     },
+    async updateAvatar(id, file){
+        try {
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            const response = await api.patch(`/auth/users/${id}/`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating avatar:', error);
+            throw error;
+        }
+    },
+
+    async updateCurrentUserInfo(id, data){
+        try {
+            const response = await api.put(`/auth/users/${id}/`, data, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.log("Update error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+    
+    async changePassword(data) {
+        try {
+            const response = await api.put("/auth/change-password/", data, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error(
+                error.response?.data?.detail || "Password change failed"
+            );
+        }
+    }
 }
 
 export default api;

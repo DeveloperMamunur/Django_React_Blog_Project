@@ -1,10 +1,9 @@
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { authService } from "../services/authService";
-
-export const AuthContext = createContext();
+import { AuthContext } from "./AuthContextValue";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,8 +12,8 @@ export const AuthProvider = ({ children }) => {
         setIsAuthLoading(true);
         const token = localStorage.getItem('access_token');
         if (token) {
-            const currentUser = await authService.getCurrentUser();
-            setUser(currentUser); // null if token invalid
+            const user = await authService.getCurrentUser();
+            setCurrentUser(user); // null if token invalid
         }
         setIsAuthLoading(false);
     };
@@ -29,8 +28,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(credentials);
       localStorage.setItem("access_token", response.token);
       localStorage.setItem("refresh_token", response.refresh);
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
       return response;
     } catch (err) {
       setError(err.message || "Login failed");
@@ -43,8 +42,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.register(userData);
       localStorage.setItem("access_token", response.token);
       localStorage.setItem("refresh_token", response.refresh);
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
       return response;
     } catch (err) {
       setError(err.message || "Registration failed");
@@ -55,7 +54,17 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-    setUser(null);
+    setCurrentUser(null);
+  };
+
+  const refreshCurrentUser = async () => {
+    try {
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+      return user;
+    } catch (err) {
+      console.error('Failed to refresh user', err);
+    }
   };
 
   return (
@@ -64,7 +73,9 @@ export const AuthProvider = ({ children }) => {
         register,
         login,
         logout,
-        user,
+        currentUser,
+        setCurrentUser,
+        refreshCurrentUser,
         isAuthLoading,
         error,
       }}

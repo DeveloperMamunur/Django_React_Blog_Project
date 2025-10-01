@@ -1,21 +1,33 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { Home, Box, Tag, FileText, Users, Settings } from "lucide-react";
 
 export default function Sidebar({ isOpen, onToggle }) {
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { currentUser, logout } = useAuth();
 
     // ✅ fallback role if no user
-    const role = user?.role || "GUEST";
+    const role = currentUser?.role || "GUEST";
 
     // ✅ Define menu items with allowed roles
+    // const menuItems = [
+    //     { path: "/dashboard", label: "Home", icon: "🏠", roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
+    //     { path: "/category", label: "Category", icon: "📦", roles: ["ADMIN"] },
+    //     { path: "/tags", label: "Tags", icon: "🏷️", roles: ["ADMIN"] },
+    //     { path: "/blogs", label: "Blogs", icon: "📝", roles: ["ADMIN", "AUTHOR"] },
+    //     { path: "/users", label: "Users", icon: "👥", roles: ["ADMIN"] },
+    //     { path: "/settings", label: "Settings", icon: "⚙️", roles: ["ADMIN"] },
+    // ];
+
+    
+
     const menuItems = [
-        { path: "/dashboard", label: "Dashboard", icon: "📊", roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
-        { path: "/category", label: "Category", icon: "📦", roles: ["ADMIN"] },
-        { path: "/tags", label: "Tags", icon: "🏷️", roles: ["ADMIN"] },
-        { path: "/blogs", label: "Blogs", icon: "📝", roles: ["ADMIN", "AUTHOR"] },
-        { path: "/members", label: "Members", icon: "👥", roles: ["ADMIN"] },
-        { path: "/settings", label: "Settings", icon: "⚙️", roles: ["ADMIN"] },
+        { path: "/dashboard", label: "Home", icon: <Home size={18} />, roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
+        { path: "/category", label: "Category", icon: <Box size={18} />, roles: ["ADMIN"] },
+        { path: "/tags", label: "Tags", icon: <Tag size={18} />, roles: ["ADMIN"] },
+        { path: "/blogs", label: "Blogs", icon: <FileText size={18} />, roles: ["ADMIN", "AUTHOR"] },
+        { path: "/users", label: "Users", icon: <Users size={18} />, roles: ["ADMIN"] },
+        { path: "/settings", label: "Settings", icon: <Settings size={18} />, roles: ["ADMIN"] },
     ];
 
     const handleLogout = () => {
@@ -29,9 +41,9 @@ export default function Sidebar({ isOpen, onToggle }) {
             {/* Logo */}
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
                 <div className="flex items-center gap-2">
-                    <span className="text-2xl">📖</span>
+                    <span className="text-2xl">📊</span>
                     <h2 className={`text-xl font-bold transition-all duration-300 ${!isOpen && "opacity-0 hidden"}`}>
-                        Library
+                        Dashboard
                     </h2>
                 </div>
                 <button

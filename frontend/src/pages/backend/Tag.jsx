@@ -7,11 +7,11 @@ import Table from "../../components/common/Table";
 import Button from "../../components/common/Button";
 
 export default function Tag(){
-    const {user} = useAuth();
+    const {currentUser} = useAuth();
     const [tags, setTags] = useState([]);
     const [editingTag, setEditingTag] = useState(null);
     const [name, setName] = useState("");
-    const onlyAdmin = isAdmin(user);
+    const onlyAdmin = isAdmin(currentUser);
 
      const columns = [
         { key: "name", header: "Name" },
@@ -90,7 +90,7 @@ export default function Tag(){
             </div>
             <div className="flex items-center justify-between mb-6">
                 <div className="w-full mx-auto">
-                    <h3 className="text-center">
+                    <h3 className="text-xl ">
                         {editingTag ? "Update Tag" : "Create Tag"}
                     </h3>
 

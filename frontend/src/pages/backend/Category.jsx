@@ -8,13 +8,13 @@ import Table from "../../components/common/Table";
 import Button from "../../components/common/Button"; // ✅ import added
 
 export default function Category() {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
     const [categories, setCategories] = useState([]);
     const [editingCategory, setEditingCategory] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: "" });
 
-    const onlyAdmin = isAdmin(user);
+    const onlyAdmin = isAdmin(currentUser);
 
     const columns = [
         { key: "name", header: "Name" },
