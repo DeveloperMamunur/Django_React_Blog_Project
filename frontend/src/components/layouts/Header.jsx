@@ -4,7 +4,7 @@ import { useDarkMode } from "../../hooks/useDarkMode";
 
 
 export default function Header() {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
     const { darkMode, toggleDarkMode } = useDarkMode();
 
     return (
@@ -17,7 +17,7 @@ export default function Header() {
                         <Link to="/about" className="">About</Link>
                         <Link to="/contact" className="">Contact</Link>
                         
-                        {user ? (
+                        { currentUser ? (
                             <>
                                 <Link to="/dashboard" className="">Dashboard</Link>
                             </>

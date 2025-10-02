@@ -9,25 +9,13 @@ export default function Sidebar({ isOpen, onToggle }) {
     // ✅ fallback role if no user
     const role = currentUser?.role || "GUEST";
 
-    // ✅ Define menu items with allowed roles
-    // const menuItems = [
-    //     { path: "/dashboard", label: "Home", icon: "🏠", roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
-    //     { path: "/category", label: "Category", icon: "📦", roles: ["ADMIN"] },
-    //     { path: "/tags", label: "Tags", icon: "🏷️", roles: ["ADMIN"] },
-    //     { path: "/blogs", label: "Blogs", icon: "📝", roles: ["ADMIN", "AUTHOR"] },
-    //     { path: "/users", label: "Users", icon: "👥", roles: ["ADMIN"] },
-    //     { path: "/settings", label: "Settings", icon: "⚙️", roles: ["ADMIN"] },
-    // ];
-
-    
-
     const menuItems = [
         { path: "/dashboard", label: "Home", icon: <Home size={18} />, roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
         { path: "/category", label: "Category", icon: <Box size={18} />, roles: ["ADMIN"] },
         { path: "/tags", label: "Tags", icon: <Tag size={18} />, roles: ["ADMIN"] },
         { path: "/blogs", label: "Blogs", icon: <FileText size={18} />, roles: ["ADMIN", "AUTHOR"] },
         { path: "/users", label: "Users", icon: <Users size={18} />, roles: ["ADMIN"] },
-        { path: "/settings", label: "Settings", icon: <Settings size={18} />, roles: ["ADMIN"] },
+        { path: "/settings", label: "Settings", icon: <Settings size={18} />, roles: ["ADMIN", "AUTHOR", "USER"] },
     ];
 
     const handleLogout = () => {
