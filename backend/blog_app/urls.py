@@ -23,4 +23,7 @@ urlpatterns = [
     # Likes
     path("blogs/<int:blog_id>/likes/", views.LikeListCreateView.as_view(), name="like-list"),
     path("likes/<int:pk>/", views.LikeDetailView.as_view(), name="like-detail"),
+
+    # public urls 
+    path("blogs/featured/", views.FeaturedBlogListView.as_view(), name="featured-blogs"),
 ]
