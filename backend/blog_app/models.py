@@ -99,6 +99,10 @@ class Blog(models.Model):
         if self.is_published and self.published_at is None:
             self.published_at = timezone.now()
 
+        # new blogs are always active
+        if self.pk is None:
+            self.is_active = True
+
         super().save(*args, **kwargs)
 
 

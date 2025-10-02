@@ -76,6 +76,18 @@ class BlogPublishToggleView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdminForObject]
 
 # ---------------------------
+# Public Blog posts Views
+# ---------------------------
+class FeaturedBlogListView(generics.ListAPIView):
+    serializer_class = BlogSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Blog.objects.filter(
+            is_featured=True, is_published=True, is_active=True
+        ).order_by("-published_at", "-created_at")
+
+# ---------------------------
 # Comment Views
 # ---------------------------
 class CommentListCreateView(generics.ListCreateAPIView):
