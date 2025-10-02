@@ -49,14 +49,16 @@ function App() {
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+
+                {/* only admin */}
                 <Route element={<ProtectedRoute roles={["ADMIN"]} />}>
                   <Route path="/category" element={<Category />} />
                   <Route path="/tags" element={<Tag />} />
                   <Route path="/users" element={<User />} />
-                  <Route path="/settings" element={<Settings />} />
                 </Route>
 
-                {/* Admin + Author */}
+                {/* Admin + Author own project */}
                 <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR"]} />}>
                   <Route path="/blogs" element={<Blog />} />
                 </Route>
