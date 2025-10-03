@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .models import Category, Tag, Blog, Comment, Like
 from .serializers import (
@@ -10,6 +11,10 @@ from .serializers import (
     LikeSerializer,
 )
 from accounts.permissions import IsAdminOrAuthor, IsAuthorOrAdminForObject, IsAdmin,IsOwnerOrAdminForObject
+from rest_framework.permissions import AllowAny
+from .pagination import CategoryPagination, TagPagination, BlogPagination
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -20,14 +25,28 @@ User = get_user_model()
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = CategoryPagination
+
+    def get_permissions(self):
+        if self.request.method == "POST":  # only ADMIN can create
+            return [permissions.IsAuthenticated(), IsAdmin()]
+        return [permissions.AllowAny()]
 
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH", "DELETE"]:
+            return [permissions.IsAuthenticated(), IsAdmin()]
+        return [permissions.AllowAny()]
 
+class CategoryListNoPagination(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdminForObject]
+    pagination_class = None
 
 # ---------------------------
 # Tag Views
@@ -35,13 +54,28 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 class TagListCreateView(generics.ListCreateAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = TagPagination
+
+    def get_permissions(self):
+        if self.request.method == "POST":  # only ADMIN can create
+            return [permissions.IsAuthenticated(), IsAdmin()]
+        return [permissions.AllowAny()]
 
 
 class TagDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH", "DELETE"]:
+            return [permissions.IsAuthenticated(), IsAdmin()]
+        return [permissions.AllowAny()]
+
+class TagListNoPagination(generics.ListAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdminForObject]
+    pagination_class = None
 
 
 # ---------------------------
@@ -50,6 +84,7 @@ class TagDetailView(generics.RetrieveUpdateDestroyAPIView):
 class BlogListCreateView(generics.ListCreateAPIView):
     queryset = Blog.objects.select_related("author", "category").prefetch_related("tags")
     serializer_class = BlogSerializer
+    pagination_class = BlogPagination
 
     def get_permissions(self):
         if self.request.method == "POST":  # only ADMIN or AUTHOR can create
@@ -75,8 +110,27 @@ class BlogPublishToggleView(generics.UpdateAPIView):
     serializer_class = BlogPublishSerializer
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdminForObject]
 
+
 # ---------------------------
-# Public Blog posts Views
+# Blog posts and user count Views
+# ---------------------------
+class StatsCountView(generics.GenericAPIView):
+    permission_classes = [AllowAny]   # anyone can view stats
+
+    def get(self, request, *args, **kwargs):
+        blog_count = Blog.objects.filter(is_published=True, is_active=True).count()
+        user_count = User.objects.filter(is_active=True).count()
+        week_ago = timezone.now() - timedelta(days=7)
+        new_content_count = Blog.objects.filter(created_at__gte=week_ago, is_published=True, is_active=True).count()
+
+        return Response({
+            "blog_count": blog_count,
+            "user_count": user_count,
+            "new_content_count": new_content_count,
+        })
+
+# ---------------------------
+# Featured Blog posts Views
 # ---------------------------
 class FeaturedBlogListView(generics.ListAPIView):
     serializer_class = BlogSerializer
