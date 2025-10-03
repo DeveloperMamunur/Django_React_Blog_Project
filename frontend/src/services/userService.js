@@ -2,9 +2,9 @@ import api from "./api";
 
 
 export const userService = {
-    async getAllUser(){
+    async getAllUser(page=1){
         try {
-            const response = await api.get("/auth/users/",{
+            const response = await api.get(`/auth/users/?page=${page}`,{
                 headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
             });
 

@@ -16,9 +16,9 @@ export const categoryService = {
         }
     },
 
-    async getAllCategories() {
+    async getAllCategories(page=1, pageSize = 6) {
         try {
-            const response = await api.get("/blog/categories/", {
+            const response = await api.get(`/blog/categories/?page=${page}&page_size=${pageSize}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('access_token')}`
                 }
@@ -69,6 +69,19 @@ export const categoryService = {
             console.error("Error toggling category status:", error);
             throw error;
         }
-    }
+    },
+    async getCategoriesNoPagination() {
+        try {
+            const response = await api.get(`/blog/categories/all/`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+            throw error;
+        }
+    },
 }
 

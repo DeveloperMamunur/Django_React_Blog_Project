@@ -5,7 +5,8 @@ import { isAdmin } from "../../utils/permissions";
 import { useAuth } from "../../hooks/useAuth";
 import CategoryModal from "../../components/modals/CategoryModal";
 import Table from "../../components/common/Table";
-import Button from "../../components/common/Button"; // ✅ import added
+import Button from "../../components/common/Button"; 
+import Pagination from "../../components/common/Pagination";
 
 export default function Category() {
     const { currentUser } = useAuth();
@@ -15,6 +16,9 @@ export default function Category() {
     const [formData, setFormData] = useState({ name: "" });
 
     const onlyAdmin = isAdmin(currentUser);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const columns = [
         { key: "name", header: "Name" },
@@ -60,10 +64,13 @@ export default function Category() {
     };
 
     // Fetch all categories
-    const getAllCategories = async () => {
+    const pageSize = 6;
+    const getAllCategories = async (page=1) => {
         try {
-            const categories = await categoryService.getAllCategories();
-            setCategories(categories);
+            const categories = await categoryService.getAllCategories(page, pageSize);
+            setCategories(categories.results);
+            setCurrentPage(page);
+            setTotalPages(Math.ceil(categories.count / pageSize));
         } catch (error) {
             console.error("Error fetching categories:", error);
         }
@@ -150,7 +157,7 @@ export default function Category() {
                                             </Button>
                                             <Button
                                                 variant="danger"
-                                                onClick={() => handleDelete(row.id)} // ✅ fix
+                                                onClick={() => handleDelete(row.id)} 
                                                 disabled={!onlyAdmin}
                                             >
                                                 Delete
@@ -160,6 +167,12 @@ export default function Category() {
                                 }
                                 return value;
                             }}
+                        />
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={(page) => getAllCategories(page)}
                         />
                     </div>
                 </div>

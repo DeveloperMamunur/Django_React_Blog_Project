@@ -5,12 +5,16 @@ import Button from "../../components/common/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { isAdmin } from "../../utils/permissions";
 import UserDetailsModal from "../../components/modals/UserDetailsModal";
+import Pagination from "../../components/common/Pagination";
 
 export default function User() {
     const { currentUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [openUserModal, setOpenUserModal] = useState(false);
+
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
 
     const onlyAdmin = isAdmin(currentUser);
 
@@ -23,9 +27,12 @@ export default function User() {
         { key: "actions", header: "Actions" }, // ✅ match "actions"
     ];
 
-    const getUsers = async () => {
-        const data = await userService.getAllUser();
-        setUsers(data);
+    const PAGE_SIZE = 12;
+    const getUsers = async (page=1) => {
+        const data = await userService.getAllUser(page);
+        setUsers(data.results);
+        setCurrentPage(page)
+        setTotalPages(Math.ceil(data.count / PAGE_SIZE))
     };
 
     const handleStatus = async (usr) => {
@@ -91,6 +98,11 @@ export default function User() {
                         }
                         return value;
                     }}
+                />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => getUsers(page)}
                 />
             </div>
 

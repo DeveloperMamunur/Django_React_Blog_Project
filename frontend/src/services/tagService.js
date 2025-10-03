@@ -15,9 +15,9 @@ export const tagService = {
         }
     },
 
-    async getAllTags() {
+    async getAllTags(page=1) {
         try {
-            const response = await api.get("/blog/tags/", {
+            const response = await api.get(`/blog/tags/?page=${page}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('access_token')}`
                 }
@@ -67,7 +67,19 @@ export const tagService = {
             throw error;
         }
     }, 
-
+    async getAllTagsNoPagination() {
+        try {
+            const response = await api.get(`/blog/tags/all/`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+            throw error;
+        }
+    },
 }
 
 
