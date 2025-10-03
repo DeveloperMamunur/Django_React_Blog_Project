@@ -21,6 +21,10 @@ export default function BlogDetailsModal({ blog, isOpen, onClose }) {
               <td className="p-2 border border-gray-300 dark:border-gray-600">{blog.title}</td>
             </tr>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
+              <td className="p-2 border border-gray-300 dark:border-gray-600">Author</td>
+              <td className="p-2 border border-gray-300 dark:border-gray-600">{blog.author?.username || "-"}</td>
+            </tr>
+            <tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
               <td className="p-2 border border-gray-300 dark:border-gray-600">Category</td>
               <td className="p-2 border border-gray-300 dark:border-gray-600">{blog.category?.name || "-"}</td>
             </tr>

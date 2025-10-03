@@ -14,6 +14,8 @@ import {
     canTogglePublish
 } from "../../utils/permissions";
 
+import Pagination from "../../components/common/Pagination";
+
 export default function Blog() {
     const { currentUser } = useAuth();
     const [blogs, setBlogs] = useState([]);
@@ -23,6 +25,8 @@ export default function Blog() {
     const [editingBlog, setEditingBlog] = useState(null);
     const [detailsBlog, setDetailsBlog] = useState(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
 
     const [formData, setFormData] = useState({
         title: "",
@@ -44,10 +48,23 @@ export default function Blog() {
         { key: "actions", header: "Actions" },
     ];
 
+    const PAGE_SIZE = 4;
+
     // Fetch data
-    const getBlogs = async () => setBlogs(await blogService.getAllBlogs());
-    const getCategories = async () => setCategories(await categoryService.getAllCategories());
-    const getTags = async () => setTags(await tagService.getAllTags());
+    const getBlogs = async (page=1) => {
+        const data = await blogService.getAllBlogs(page)
+        setBlogs(data.results)
+        setCurrentPage(page)
+        setTotalPages(Math.ceil(data.count / PAGE_SIZE))
+    };
+    const getCategories = async () => {
+        const data = await categoryService.getCategoriesNoPagination();
+        setCategories(data);
+    } 
+    const getTags = async () => {
+        const data = await tagService.getAllTagsNoPagination();
+        setTags(data)
+    }
 
     useEffect(() => {
         getBlogs();
@@ -262,6 +279,11 @@ export default function Blog() {
                     }
                     return value;
                 }}
+            />
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => getBlogs(page)}
             />
 
             {/* Blog Modal */}

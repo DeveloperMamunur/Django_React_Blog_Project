@@ -14,7 +14,7 @@ export default function BlogModal({
     categories,
     tags,
 }) {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
     const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
@@ -53,7 +53,7 @@ export default function BlogModal({
                 <FormField
                     label="Author"
                     type="text"
-                    value={user?.username || ""}
+                    value={currentUser?.username || ""}
                     disabled
                 />
 

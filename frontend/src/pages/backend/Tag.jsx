@@ -5,6 +5,7 @@ import { isAdmin } from "../../utils/permissions";
 import { useAuth } from "../../hooks/useAuth";
 import Table from "../../components/common/Table";
 import Button from "../../components/common/Button";
+import Pagination from "../../components/common/Pagination";
 
 export default function Tag(){
     const {currentUser} = useAuth();
@@ -12,6 +13,8 @@ export default function Tag(){
     const [editingTag, setEditingTag] = useState(null);
     const [name, setName] = useState("");
     const onlyAdmin = isAdmin(currentUser);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
      const columns = [
         { key: "name", header: "Name" },
@@ -38,10 +41,12 @@ export default function Tag(){
         }
     };
 
-
-    const getAllTags = async () => {
-        const tags = await tagService.getAllTags();
-        setTags(tags)
+    const pageSize = 7;
+    const getAllTags = async (page=1) => {
+        const response = await tagService.getAllTags(page);
+        setTags(response.results)
+        setCurrentPage(page)
+        setTotalPages(Math.ceil(response.count / pageSize));
     }
 
     const handleEdit = (tag) => {
@@ -152,27 +157,11 @@ export default function Tag(){
                                 return value;
                             }}
                         />
-                        {/* <table className="w-full mt-4">
-                            <thead>
-                                <tr>
-                                    <th className="text-left border-b pb-2">Name</th>
-                                    <th className="text-left border-b pb-2">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                { tags.length === 0 && <tr><td colSpan="2" className="text-center py-2">No tags found.</td></tr> }
-                                { tags.map(tag => (
-                                    <tr key={tag.id}>
-                                        <td className="border-b py-2">{tag.name}</td>
-                                        <td className="border-b py-2">
-                                            <button onClick={() => handleEdit(tag)} className="text-blue-500 me-3">Edit</button>
-                                            <button onClick={() => handleDelete(tag.id)} className="text-red-500">Delete</button>
-                                        </td>
-                                    </tr>
-                                )) }
-
-                            </tbody>
-                        </table> */}
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={(page) => getAllTags(page)}
+                        />
                     </div>
                 </div>
             </div>

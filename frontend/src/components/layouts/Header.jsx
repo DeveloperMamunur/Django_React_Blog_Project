@@ -8,9 +8,9 @@ export default function Header() {
     const { darkMode, toggleDarkMode } = useDarkMode();
 
     return (
-        <header className="bg-blue-600 dark:bg-blue-950 text-white p-4">
+        <header className="bg-gradient-to-br from-slate-100 to-slate-100 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 p-4">
             <div className="container mx-auto flex justify-between items-center">
-                <h1 className="text-2xl font-bold">My Blog</h1>
+                <Link to="/" className="text-2xl font-bold">My Blog</Link>
                 <nav className="flex items-center">
                     <ul className="flex items-center space-x-4">
                         <Link to="/" className="">Home</Link>

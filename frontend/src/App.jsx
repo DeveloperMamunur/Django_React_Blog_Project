@@ -30,7 +30,10 @@ function App() {
             
             {/* Public Frontend */}
             <Route path="/" element={<FrontendLayouts />}>
+              
               <Route index element={<Home />} />
+
+              
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={
@@ -48,19 +51,20 @@ function App() {
             <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR", "USER"]} />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/user/profile" element={<Profile />} />
+                <Route path="/dashboard/settings" element={<Settings />} />
+                <Route path="/blogs" element={<Settings />} />
 
                 {/* only admin */}
                 <Route element={<ProtectedRoute roles={["ADMIN"]} />}>
-                  <Route path="/category" element={<Category />} />
-                  <Route path="/tags" element={<Tag />} />
-                  <Route path="/users" element={<User />} />
+                  <Route path="/dashboard/category" element={<Category />} />
+                  <Route path="/dashboard/tags" element={<Tag />} />
+                  <Route path="/dashboard/users" element={<User />} />
                 </Route>
 
                 {/* Admin + Author own project */}
                 <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR"]} />}>
-                  <Route path="/blogs" element={<Blog />} />
+                  <Route path="/dashboard/blogs" element={<Blog />} />
                 </Route>
               </Route>
             </Route>

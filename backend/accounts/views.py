@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
 from .permissions import IsAdmin
+from .pagination import UserPagination
 
 User = get_user_model()
 # Create your views here.
@@ -19,6 +20,7 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]   # only ADMINs can list users
+    pagination_class = UserPagination
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
