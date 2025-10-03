@@ -6,7 +6,7 @@ export default function FrontendLayouts() {
     return (
         <div className="min-h-screen dark:bg-gray-800 dark:text-gray-200 flex flex-col">
             <Header />
-            <main className="flex-grow mt-6">
+            <main className="flex-grow">
                 <Outlet />
             </main>
             <Footer />

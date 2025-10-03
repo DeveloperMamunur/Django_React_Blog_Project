@@ -11,11 +11,11 @@ export default function Sidebar({ isOpen, onToggle }) {
 
     const menuItems = [
         { path: "/dashboard", label: "Home", icon: <Home size={18} />, roles: ["ADMIN", "AUTHOR", "USER", "GUEST"] },
-        { path: "/category", label: "Category", icon: <Box size={18} />, roles: ["ADMIN"] },
-        { path: "/tags", label: "Tags", icon: <Tag size={18} />, roles: ["ADMIN"] },
-        { path: "/blogs", label: "Blogs", icon: <FileText size={18} />, roles: ["ADMIN", "AUTHOR"] },
-        { path: "/users", label: "Users", icon: <Users size={18} />, roles: ["ADMIN"] },
-        { path: "/settings", label: "Settings", icon: <Settings size={18} />, roles: ["ADMIN", "AUTHOR", "USER"] },
+        { path: "/dashboard/category", label: "Category", icon: <Box size={18} />, roles: ["ADMIN"] },
+        { path: "/dashboard/tags", label: "Tags", icon: <Tag size={18} />, roles: ["ADMIN"] },
+        { path: "/dashboard/blogs", label: "Blogs", icon: <FileText size={18} />, roles: ["ADMIN", "AUTHOR"] },
+        { path: "/dashboard/users", label: "Users", icon: <Users size={18} />, roles: ["ADMIN"] },
+        { path: "/dashboard/settings", label: "Settings", icon: <Settings size={18} />, roles: ["ADMIN", "AUTHOR", "USER"] },
     ];
 
     const handleLogout = () => {
@@ -66,7 +66,7 @@ export default function Sidebar({ isOpen, onToggle }) {
             {/* Footer */}
             <div className="p-4 border-t border-gray-700">
                 <Link
-                    to="/profile"
+                    to="/user/profile"
                     className="flex items-center gap-3 p-2 rounded hover:bg-gray-300 dark:hover:bg-gray-700"
                 >
                     <span>👤</span>
