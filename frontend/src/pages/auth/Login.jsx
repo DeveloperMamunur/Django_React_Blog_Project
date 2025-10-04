@@ -1,26 +1,31 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 
 export default function Login() {
-    const { login, user } = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    useEffect(() => {
-        if (user) {
-        navigate("/dashboard", { replace: true });
-        }
-    }, [user, navigate]);
+
+    const params = new URLSearchParams(location.search);
+    const next = params.get("next");
+    const nextUrl = next ? decodeURIComponent(next) : "/dashboard";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login({
+        
+        const result = await login({
             username: e.target.username.value,
             password: e.target.password.value,
         });
-        navigate('/dashboard');
+
+        if (result.success) {
+            navigate(nextUrl, { replace: true });
+        }
     };
+
+
     return (
         <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-900 dark:text-gray-200 rounded-md shadow-md mt-10">
             <h2 className="text-3xl text-center font-bold mb-4">Login</h2>

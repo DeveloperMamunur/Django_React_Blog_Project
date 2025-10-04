@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { authService } from "../services/authService";
 import { AuthContext } from "./AuthContextValue";
+import { flushSync } from "react-dom";
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -21,21 +22,23 @@ export const AuthProvider = ({ children }) => {
     initUser();
   }, []);
 
-  
-
   const login = async (credentials) => {
-    try {
-      const response = await authService.login(credentials);
-      localStorage.setItem("access_token", response.token);
-      localStorage.setItem("refresh_token", response.refresh);
-      const user = await authService.getCurrentUser();
-      setCurrentUser(user);
-      return response;
-    } catch (err) {
-      setError(err.message || "Login failed");
-      throw err;
-    }
-  };
+  try {
+    const response = await authService.login(credentials);
+    localStorage.setItem("access_token", response.token);
+    localStorage.setItem("refresh_token", response.refresh);
+    const user = await authService.getCurrentUser();
+    setCurrentUser(user);
+      flushSync(() => {
+        setCurrentUser(user);
+      });
+      
+      return { success: true, user };
+  } catch (err) {
+    setError(err.message || "Login failed");
+    throw err;
+  }
+};
 
   const register = async (userData) => {
     try {
@@ -44,7 +47,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("refresh_token", response.refresh);
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
-      return response;
+      flushSync(() => {
+        setCurrentUser(user);
+      });
+      
+      return { success: true, user };
+      // return response;
     } catch (err) {
       setError(err.message || "Registration failed");
       throw err;

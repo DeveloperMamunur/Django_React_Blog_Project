@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import User from "./pages/backend/User";
 import Settings from "./pages/backend/Settings";
 import Profile from "./pages/backend/Profile";
+import Blogs from "./pages/frontend/Blogs";
 
 
 function App() {
@@ -32,16 +33,17 @@ function App() {
             <Route path="/" element={<FrontendLayouts />}>
               
               <Route index element={<Home />} />
-
-              
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={
+              <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR", "USER"]} />}>
+                <Route path="/blogs" element={<Blogs />} />
+              </Route>
+              <Route path="about" element={<About />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="login" element={
                 <GuestRoute>
                   <Login />
                 </GuestRoute>
               }/>
-              <Route path="/register" element={
+              <Route path="register" element={
                 <GuestRoute>
                   <Register />
                 </GuestRoute>
@@ -53,7 +55,6 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/user/profile" element={<Profile />} />
                 <Route path="/dashboard/settings" element={<Settings />} />
-                <Route path="/blogs" element={<Settings />} />
 
                 {/* only admin */}
                 <Route element={<ProtectedRoute roles={["ADMIN"]} />}>

@@ -48,81 +48,81 @@ export default function Home() {
     {/* Hero Section */}
     <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center mb-16">
-        <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Sparkles className="w-4 h-4" />
-            <span>Welcome to Our Community</span>
-        </div>
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <Sparkles className="w-4 h-4" />
+                <span>Welcome to Our Community</span>
+            </div>
 
-        <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight">
-            Discover Stories That
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-            {" "}Inspire
-            </span>
-        </h1>
+            <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight">
+                Discover Stories That
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+                {" "}Inspire
+                </span>
+            </h1>
 
-        <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
-            Dive into a world of insightful articles, tutorials, and updates on technology, development, and innovation. Join thousands of readers who stay ahead of the curve.
-        </p>
+            <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+                Dive into a world of insightful articles, tutorials, and updates on technology, development, and innovation. Join thousands of readers who stay ahead of the curve.
+            </p>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/register" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
-            Get Started
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link to="/blogs" className="border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 px-8 py-4 rounded-lg font-semibold text-lg hover:border-slate-400 dark:hover:border-slate-400 hover:bg-white dark:hover:bg-slate-700 transition-all duration-200">
-            Browse Articles
-            </Link>
-        </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link to="/register" className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
+                    Get Started
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link to="/blogs" className="border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 px-8 py-4 rounded-lg font-semibold text-lg hover:border-slate-400 dark:hover:border-slate-400 hover:bg-white dark:hover:bg-slate-700 transition-all duration-200">
+                    Browse Articles
+                </Link>
+            </div>
         </div>
 
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-20">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 text-center">
-            <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.blog_count}+</div>
-            <div className="text-slate-600 dark:text-slate-300">Articles Published</div>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 text-center">
-            <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.user_count}+</div>
-            <div className="text-slate-600 dark:text-slate-300">Active Readers</div>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 text-center">
-            <Sparkles className="w-8 h-8 text-pink-600 mx-auto mb-3" />
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">Weekly</div>
-            <div className="text-slate-600 dark:text-slate-300">{stats.new_content_count}+ New Content</div>
-        </div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 text-center">
+                <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.blog_count}+</div>
+                <div className="text-slate-600 dark:text-slate-300">Articles Published</div>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 text-center">
+                <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.user_count}+</div>
+                <div className="text-slate-600 dark:text-slate-300">Active Readers</div>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 text-center">
+                <Sparkles className="w-8 h-8 text-pink-600 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">Weekly</div>
+                <div className="text-slate-600 dark:text-slate-300">{stats.new_content_count}+ New Content</div>
+            </div>
         </div>
 
         {/* Featured Posts */}
         <div className="max-w-6xl mx-auto mb-20">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-8 text-center">Featured Articles</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featuredPosts.length > 0 ? (
-            featuredPosts.slice(0, 3).map((post) => (
-                <div key={post.id} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-600 transition-all duration-300 cursor-pointer group">
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 px-3 py-1 rounded-full">
-                    {post.category?.name}
-                    </span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {post.title}
-                </h3>
-                <p className="text-slate-600 dark:text-slate-300 mb-4 line-clamp-2">
-                    {post.content}
-                </p>
-                <button className="text-blue-600 dark:text-blue-400 font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Read More
-                    <ArrowRight className="w-4 h-4" />
-                </button>
-                </div>
-            ))
-            ) : (
-            <p className="text-center text-slate-500 dark:text-slate-400 col-span-3">No featured posts available.</p>
-            )}
-        </div>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-8 text-center">Featured Articles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredPosts.length > 0 ? (
+                    featuredPosts.slice(0, 3).map((post) => (
+                        <div key={post.id} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-600 transition-all duration-300 cursor-pointer group">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 px-3 py-1 rounded-full">
+                                {post.category?.name}
+                                </span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                {post.title}
+                            </h3>
+                            <p className="text-slate-600 dark:text-slate-300 mb-4 line-clamp-2">
+                                {post.content}
+                            </p>
+                            <button className="text-blue-600 dark:text-blue-400 font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Read More
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                <p className="text-center text-slate-500 dark:text-slate-400 col-span-3">No featured posts available.</p>
+                )}
+            </div>
         </div>
 
         {/* Newsletter Subscription */}
