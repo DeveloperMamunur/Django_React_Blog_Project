@@ -29,4 +29,6 @@ urlpatterns = [
     # public urls 
     path("blogs/featured/", views.FeaturedBlogListView.as_view(), name="featured-blogs"),
     path("stats/", views.StatsCountView.as_view(), name="stats-count"),
+    path("posts/", views.BlogPostListView.as_view(), name="blog-list"),
+    path("posts/<int:pk>/", views.BlogPostDetailView.as_view(), name="blog-detail"),
 ]

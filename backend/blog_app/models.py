@@ -1,7 +1,4 @@
 from django.db import models
-
-
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.utils import timezone
@@ -172,7 +169,11 @@ class ViewCount(models.Model):
     viewed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("blog", "ip_address")
+        unique_together = ("blog", "user", "ip_address")
+        indexes = [
+            models.Index(fields=["blog", "ip_address"]),
+            models.Index(fields=["viewed_at"]),
+        ]
 
     def __str__(self):
 

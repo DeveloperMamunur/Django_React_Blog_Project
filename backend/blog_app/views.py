@@ -9,10 +9,11 @@ from .serializers import (
     BlogPublishSerializer,
     CommentSerializer,
     LikeSerializer,
+    PublicBlogSerializer
 )
 from accounts.permissions import IsAdminOrAuthor, IsAuthorOrAdminForObject, IsAdmin,IsOwnerOrAdminForObject
 from rest_framework.permissions import AllowAny
-from .pagination import CategoryPagination, TagPagination, BlogPagination
+from .pagination import CategoryPagination, TagPagination, BlogPagination, PublicBlogPagination
 from django.utils import timezone
 from datetime import timedelta
 
@@ -79,10 +80,10 @@ class TagListNoPagination(generics.ListAPIView):
 
 
 # ---------------------------
-# Blog Views
+# Blog Views for admin and author
 # ---------------------------
 class BlogListCreateView(generics.ListCreateAPIView):
-    queryset = Blog.objects.select_related("author", "category").prefetch_related("tags")
+    queryset = Blog.objects.select_related("author", "category").prefetch_related("tags", "likes", "views")
     serializer_class = BlogSerializer
     pagination_class = BlogPagination
 
@@ -104,12 +105,57 @@ class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
             return [permissions.IsAuthenticated(), IsAuthorOrAdminForObject()]
         return [permissions.AllowAny()]
 
+# ---------------------------
+# Blog publish only admin
+# ---------------------------
 
 class BlogPublishToggleView(generics.UpdateAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogPublishSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdminForObject]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
+
+# ---------------------------
+# Blog Post Views for public
+# ---------------------------
+class BlogPostListView(generics.ListAPIView):
+    queryset = (
+        Blog.objects.filter(is_active=True, is_published=True)
+        .select_related("author", "category")
+        .prefetch_related("tags", "likes", "views", "comments__user", "comments__replies__user")
+    )
+    serializer_class = PublicBlogSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PublicBlogPagination
+
+
+class BlogPostDetailView(generics.RetrieveAPIView):
+    queryset = (
+        Blog.objects.filter(is_active=True, is_published=True)
+        .select_related("author", "category")
+        .prefetch_related("tags", "likes", "views", "comments__user", "comments__replies__user")
+    )
+    serializer_class = PublicBlogSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user = request.user if request.user.is_authenticated else None
+        ip = self.get_client_ip(request)
+
+        # Create a unique view per blog+ip (or per user)
+        ViewCount.objects.get_or_create(blog=instance, user=user, ip_address=ip)
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        return ip
 
 # ---------------------------
 # Blog posts and user count Views
@@ -139,7 +185,7 @@ class FeaturedBlogListView(generics.ListAPIView):
     def get_queryset(self):
         return Blog.objects.filter(
             is_featured=True, is_published=True, is_active=True
-        ).order_by("-published_at", "-created_at")
+        ).order_by("-published_at", "-created_at")[:3]
 
 # ---------------------------
 # Comment Views

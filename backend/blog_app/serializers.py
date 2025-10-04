@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Category, Tag, Blog, Comment, Like
-from accounts.serializers import UserSerializer  # import from accounts app
+from accounts.serializers import UserSerializer 
+from django.utils.timesince import timesince
 
 User = get_user_model()
 
@@ -109,9 +110,11 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ["id", "blog", "user", "content", "parent", "replies", "created_at", "updated_at"]
 
     def get_replies(self, obj):
-        serializer = CommentSerializer(obj.replies.all(), many=True)
-        return serializer.data
-
+        replies = obj.replies.select_related("user").all()
+        return CommentSerializer(replies, many=True).data
+        
+    def get_time_ago(self, obj):
+        return timesince(obj.created_at) + " ago"
 
 # ---------------------------
 # Like Serializer
@@ -122,3 +125,53 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = ["id", "blog", "user", "created_at"]
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        user = request.user
+        blog = attrs.get("blog")
+        if Like.objects.filter(user=user, blog=blog).exists():
+            raise serializers.ValidationError("You already liked this blog.")
+        return attrs
+
+
+# ---------------------------
+# Public Blog Serializer
+# ---------------------------
+class PublicBlogSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    likes_count = serializers.IntegerField(source="likes.count", read_only=True)
+    views_count = serializers.IntegerField(source="views.count", read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
+    time_since_published = serializers.SerializerMethodField()
+
+    def get_replies(self, obj):
+        serializer = CommentSerializer(obj.replies.all(), many=True)
+        return serializer.data
+
+    class Meta:
+        model = Blog
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "author",
+            "category",
+            "tags",
+            "content",
+            "image",
+            "is_featured",
+            "is_published",
+            "likes_count",
+            "views_count",
+            "comments",
+            "published_at",
+            "time_since_published",
+        ]
+
+    def get_time_since_published(self, obj):
+        if obj.published_at:
+            return timesince(obj.published_at) + " ago"
+        return None
