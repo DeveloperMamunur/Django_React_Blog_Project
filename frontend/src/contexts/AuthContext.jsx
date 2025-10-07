@@ -29,11 +29,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("refresh_token", response.refresh);
     const user = await authService.getCurrentUser();
     setCurrentUser(user);
-      flushSync(() => {
-        setCurrentUser(user);
-      });
-      
-      return { success: true, user };
+    flushSync(() => {
+      setCurrentUser(user);
+    });
+    
+    return { success: true, user };
   } catch (err) {
     setError(err.message || "Login failed");
     throw err;

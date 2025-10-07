@@ -1,21 +1,28 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
+from rest_framework import status, viewsets
+from django.db.models import Count, Prefetch
+from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
-from .models import Category, Tag, Blog, Comment, Like
+from .models import Category, Tag, Blog, Comment, Reaction, ViewCount
 from .serializers import (
     CategorySerializer,
     TagSerializer,
     BlogSerializer,
     BlogPublishSerializer,
     CommentSerializer,
-    LikeSerializer,
-    PublicBlogSerializer
+    ReactionSerializer,
+    PublicBlogSerializer,
+    FeaturedBlogSerializer
 )
 from accounts.permissions import IsAdminOrAuthor, IsAuthorOrAdminForObject, IsAdmin,IsOwnerOrAdminForObject
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from .pagination import CategoryPagination, TagPagination, BlogPagination, PublicBlogPagination
 from django.utils import timezone
 from datetime import timedelta
+from django.db import IntegrityError
+
 
 User = get_user_model()
 
@@ -83,7 +90,7 @@ class TagListNoPagination(generics.ListAPIView):
 # Blog Views for admin and author
 # ---------------------------
 class BlogListCreateView(generics.ListCreateAPIView):
-    queryset = Blog.objects.select_related("author", "category").prefetch_related("tags", "likes", "views")
+    queryset = Blog.objects.select_related("author", "category").prefetch_related("tags", "views")
     serializer_class = BlogSerializer
     pagination_class = BlogPagination
 
@@ -119,40 +126,91 @@ class BlogPublishToggleView(generics.UpdateAPIView):
 # Blog Post Views for public
 # ---------------------------
 class BlogPostListView(generics.ListAPIView):
-    queryset = (
-        Blog.objects.filter(is_active=True, is_published=True)
-        .select_related("author", "category")
-        .prefetch_related("tags", "likes", "views", "comments__user", "comments__replies__user")
-    )
     serializer_class = PublicBlogSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = PublicBlogPagination
 
+    def get_queryset(self):
+        return (
+            Blog.objects.filter(is_active=True, is_published=True)
+            .select_related("author", "category")
+            .prefetch_related(
+                "tags",
+                "views",
+                Prefetch(
+                    'comments',
+                    queryset=Comment.objects.select_related('user')
+                ),
+                "reactions"
+            )
+            # Optional: Add annotations if you want to sort by counts
+            .annotate(
+                views_count_annotated=Count('views', distinct=True),
+                comments_count_annotated=Count('comments', distinct=True)
+            )
+            .order_by('-published_at', '-created_at')
+        )
 
 class BlogPostDetailView(generics.RetrieveAPIView):
-    queryset = (
-        Blog.objects.filter(is_active=True, is_published=True)
-        .select_related("author", "category")
-        .prefetch_related("tags", "likes", "views", "comments__user", "comments__replies__user")
-    )
+
     serializer_class = PublicBlogSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
+    lookup_url_kwarg = 'slug'
+
+    def get_queryset(self):
+        return (
+            Blog.objects.filter(is_active=True, is_published=True)
+            .select_related("author", "category")
+            .prefetch_related(
+                "tags",
+                "views",
+                Prefetch(
+                    'comments',
+                    queryset=Comment.objects.select_related('user').order_by('-created_at')
+                ),
+                "reactions"
+            )
+            .annotate(
+                comments_count=Count('comments', distinct=True)
+            )
+        )
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        Override retrieve to track view count by IP address.
+        Uses update_or_create to prevent duplicate views from same IP.
+        """
         instance = self.get_object()
-        user = request.user if request.user.is_authenticated else None
+        
+        # Get client IP address
         ip = self.get_client_ip(request)
+        user = request.user if request.user.is_authenticated else None
 
-        # Create a unique view per blog+ip (or per user)
-        ViewCount.objects.get_or_create(blog=instance, user=user, ip_address=ip)
+        # Track view (unique per IP per blog)
+        try:
+            ViewCount.objects.update_or_create(
+                blog=instance,
+                ip_address=ip,
+                defaults={'user': user}
+            )
+        except IntegrityError:
+            # Ignore duplicate view
+            pass
 
+        # Return serialized blog data
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     def get_client_ip(self, request):
+        """
+        Extract client IP address from request.
+        Handles proxy forwarding (X-Forwarded-For header).
+        """
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0]
+            # Take first IP in chain
+            ip = x_forwarded_for.split(",")[0].strip()
         else:
             ip = request.META.get("REMOTE_ADDR")
         return ip
@@ -179,7 +237,7 @@ class StatsCountView(generics.GenericAPIView):
 # Featured Blog posts Views
 # ---------------------------
 class FeaturedBlogListView(generics.ListAPIView):
-    serializer_class = BlogSerializer
+    serializer_class = FeaturedBlogSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
@@ -198,7 +256,8 @@ class CommentListCreateView(generics.ListCreateAPIView):
         return Comment.objects.filter(blog_id=self.kwargs["blog_id"], parent__isnull=True)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        blog_id = self.kwargs["blog_id"]
+        serializer.save(user=self.request.user, blog_id=blog_id)
 
 
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -214,20 +273,83 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
 # ---------------------------
 # Like Views
 # ---------------------------
-class LikeListCreateView(generics.ListCreateAPIView):
-    serializer_class = LikeSerializer
+class ReactionViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return Like.objects.filter(blog_id=self.kwargs["blog_id"])
+    def list(self, request, blog_pk=None):
+        """Get reaction counts for a blog"""
+        try:
+            blog = Blog.objects.get(pk=blog_pk)
+        except Blog.DoesNotExist:
+            return Response({"error": "Blog not found"}, status=404)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Get counts for each reaction type
+        counts = blog.reactions.values('type').annotate(count=Count('type'))
+        reaction_counts = {item['type']: item['count'] for item in counts}
+        
+        # Initialize all types with 0
+        all_counts = {rtype: 0 for rtype, _ in Reaction.REACTION_CHOICES}
+        all_counts.update(reaction_counts)
+
+        # Get user's current reaction
+        user_reaction = None
+        if request.user.is_authenticated:
+            reaction = blog.reactions.filter(user=request.user).first()
+            user_reaction = reaction.type if reaction else None
+
+        return Response({
+            'counts': all_counts,
+            'user_reaction': user_reaction
+        })
+
+    def create(self, request, blog_pk=None):
+        """Add or toggle a reaction"""
+        try:
+            blog = Blog.objects.get(pk=blog_pk)
+        except Blog.DoesNotExist:
+            return Response({"error": "Blog not found"}, status=404)
+
+        reaction_type = request.data.get('type')
+        
+        if not reaction_type or reaction_type not in dict(Reaction.REACTION_CHOICES):
+            return Response(
+                {"error": "Invalid reaction type"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get existing reaction
+        existing_reaction = Reaction.objects.filter(
+            blog=blog, 
+            user=request.user
+        ).first()
 
 
-class LikeDetailView(generics.RetrieveDestroyAPIView):
-    queryset = Like.objects.all()
-    serializer_class = LikeSerializer
+        if existing_reaction and existing_reaction.type == reaction_type:
+            existing_reaction.delete()
+            user_reaction = None
 
-    def get_permissions(self):
-        return [permissions.IsAuthenticated(), IsOwnerOrAdminForObject()]
+        elif existing_reaction:
+            existing_reaction.type = reaction_type
+            existing_reaction.save()
+            user_reaction = reaction_type
+
+        else:
+            Reaction.objects.create(
+                blog=blog,
+                user=request.user,
+                type=reaction_type
+            )
+            user_reaction = reaction_type
+
+
+        counts = blog.reactions.values('type').annotate(count=Count('type'))
+        reaction_counts = {item['type']: item['count'] for item in counts}
+        
+
+        all_counts = {rtype: 0 for rtype, _ in Reaction.REACTION_CHOICES}
+        all_counts.update(reaction_counts)
+
+        return Response({
+            'counts': all_counts,
+            'user_reaction': user_reaction
+        })

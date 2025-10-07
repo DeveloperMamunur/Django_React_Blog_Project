@@ -14,6 +14,7 @@ export default function Header() {
                 <nav className="flex items-center">
                     <ul className="flex items-center space-x-4">
                         <Link to="/" className="">Home</Link>
+                        <Link to="/posts" className="">Posts</Link>
                         <Link to="/about" className="">About</Link>
                         <Link to="/contact" className="">Contact</Link>
                         

@@ -19,7 +19,8 @@ import NotFound from "./pages/NotFound";
 import User from "./pages/backend/User";
 import Settings from "./pages/backend/Settings";
 import Profile from "./pages/backend/Profile";
-import Blogs from "./pages/frontend/Blogs";
+import Posts from "./pages/frontend/Posts";
+import SinglePost from "./pages/frontend/SinglePost";
 
 
 function App() {
@@ -34,7 +35,8 @@ function App() {
               
               <Route index element={<Home />} />
               <Route element={<ProtectedRoute roles={["ADMIN", "AUTHOR", "USER"]} />}>
-                <Route path="/blogs" element={<Blogs />} />
+                <Route path="/posts" element={<Posts />} />
+                <Route path="posts/:slug" element={<SinglePost />} />
               </Route>
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />

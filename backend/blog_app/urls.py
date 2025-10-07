@@ -23,12 +23,11 @@ urlpatterns = [
     path("comments/<int:pk>/", views.CommentDetailView.as_view(), name="comment-detail"),
 
     # Likes
-    path("blogs/<int:blog_id>/likes/", views.LikeListCreateView.as_view(), name="like-list"),
-    path("likes/<int:pk>/", views.LikeDetailView.as_view(), name="like-detail"),
+    path('blogs/<int:blog_pk>/reactions/', views.ReactionViewSet.as_view({'get': 'list', 'post': 'create'}), name='blog-reactions'),
 
     # public urls 
     path("blogs/featured/", views.FeaturedBlogListView.as_view(), name="featured-blogs"),
     path("stats/", views.StatsCountView.as_view(), name="stats-count"),
     path("posts/", views.BlogPostListView.as_view(), name="blog-list"),
-    path("posts/<int:pk>/", views.BlogPostDetailView.as_view(), name="blog-detail"),
+    path("posts/<str:slug>/", views.BlogPostDetailView.as_view(), name="blog-detail"),
 ]

@@ -90,26 +90,6 @@ export const blogService = {
             console.log(error);
         }
     },
-    
-    async getFeaturedPosts(page=1) {
-        try {
-            const response = await api.get(`/blog/blogs/featured/?page=${page}`);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching blog posts:", error);
-            throw error;
-        }
-    },
 
-
-    async getStats() {
-        try{
-            const response = await api.get("/blog/stats/");
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching stats:", error);
-            throw error;
-        }
-    },
 
 };

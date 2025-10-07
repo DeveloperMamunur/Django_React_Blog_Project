@@ -1,4 +1,5 @@
 import { Mail, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -21,10 +22,10 @@ export default function Footer() {
         <div className="space-y-4">
           <h4 className="text-xl font-semibold text-gray-900 dark:text-white">Quick Links</h4>
           <ul className="space-y-2">
-            <li className="hover:text-blue-500 transition-colors cursor-pointer">Home</li>
-            <li className="hover:text-blue-500 transition-colors cursor-pointer">About</li>
-            <li className="hover:text-blue-500 transition-colors cursor-pointer">Blogs</li>
-            <li className="hover:text-blue-500 transition-colors cursor-pointer">Contact</li>
+            <li className="hover:text-blue-500 transition-colors cursor-pointer"><Link to="/">Home</Link></li>
+            <li className="hover:text-blue-500 transition-colors cursor-pointer"><Link to="/about">About</Link></li>
+            <li className="hover:text-blue-500 transition-colors cursor-pointer"><Link to="/posts">Posts</Link></li>
+            <li className="hover:text-blue-500 transition-colors cursor-pointer"><Link to="/contact">Contact</Link></li>
           </ul>
         </div>
 

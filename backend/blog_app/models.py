@@ -135,7 +135,7 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["created_at"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Comment by {self.user} on {self.blog}"
@@ -144,17 +144,33 @@ class Comment(models.Model):
 # ---------------------------
 # Like / Reaction Model
 # ---------------------------
-class Like(models.Model):
-    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name="likes")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="likes")
+class Reaction(models.Model):
+    LIKE = "like"
+    LOVE = "love"
+    HAHA = "haha"
+    WOW = "wow"
+    SAD = "sad"
+    ANGRY = "angry"
+
+    REACTION_CHOICES = [
+        (LIKE, "Like"),
+        (LOVE, "Love"),
+        (HAHA, "Haha"),
+        (WOW, "Wow"),
+        (SAD, "Sad"),
+        (ANGRY, "Angry"),
+    ]
+
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name="reactions")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reactions")
+    type = models.CharField(max_length=10, choices=REACTION_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("blog", "user")  # prevent duplicate likes
+        unique_together = ("blog", "user")
 
     def __str__(self):
-
-        return f"{self.user} likes {self.blog}"
+        return f"{self.user} reacted {self.type} on {self.blog.title}"
 
 
 # ---------------------------
@@ -169,10 +185,11 @@ class ViewCount(models.Model):
     viewed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("blog", "user", "ip_address")
+        unique_together = [['blog', 'ip_address']]
+        ordering = ['-viewed_at']
         indexes = [
-            models.Index(fields=["blog", "ip_address"]),
-            models.Index(fields=["viewed_at"]),
+            models.Index(fields=['blog', 'ip_address']),
+            models.Index(fields=['viewed_at']),
         ]
 
     def __str__(self):

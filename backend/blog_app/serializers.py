@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Category, Tag, Blog, Comment, Like
+from .models import Category, Tag, Blog, Comment, Reaction
 from accounts.serializers import UserSerializer 
 from django.utils.timesince import timesince
+from collections import Counter
+from django.db.models import Count
 
 User = get_user_model()
 
@@ -119,21 +121,31 @@ class CommentSerializer(serializers.ModelSerializer):
 # ---------------------------
 # Like Serializer
 # ---------------------------
-class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+class ReactionSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
-        model = Like
-        fields = ["id", "blog", "user", "created_at"]
+        model = Reaction
+        fields = ["id", "user", "type", "created_at"]
 
-    def validate(self, attrs):
-        request = self.context.get("request")
-        user = request.user
-        blog = attrs.get("blog")
-        if Like.objects.filter(user=user, blog=blog).exists():
-            raise serializers.ValidationError("You already liked this blog.")
-        return attrs
+class FeaturedBlogSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='name', 
+        read_only=True
+    )
 
+    class Meta:
+        model = Blog
+        fields = [
+            "id", 
+            "title", 
+            "content", 
+            "category",
+            "slug", 
+            "is_published", 
+            "is_featured", 
+            "is_active",
+        ]
 
 # ---------------------------
 # Public Blog Serializer
@@ -142,36 +154,50 @@ class PublicBlogSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    likes_count = serializers.IntegerField(source="likes.count", read_only=True)
-    views_count = serializers.IntegerField(source="views.count", read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
-    time_since_published = serializers.SerializerMethodField()
+    views_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    user_reaction = serializers.SerializerMethodField()
+    reaction_counts = serializers.SerializerMethodField()
 
-    def get_replies(self, obj):
-        serializer = CommentSerializer(obj.replies.all(), many=True)
-        return serializer.data
+    def get_views_count(self, obj):
+        """Get unique view count from ViewCount model"""
+        return obj.views.count()
+    
+    def get_comments_count(self, obj):
+        """Get comment count"""
+
+        if hasattr(obj, 'comments_count'):
+            return obj.comments_count
+        return obj.comments.count()
+
+    def get_user_reaction(self, obj):
+        """Get current user's reaction to this blog"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            reaction = obj.reactions.filter(user=request.user).first()
+            return reaction.type if reaction else None
+        return None
+    
+    def get_reaction_counts(self, obj):
+        """Get counts for each reaction type"""
+        counts = obj.reactions.values('type').annotate(count=Count('type'))
+        return {item['type']: item['count'] for item in counts}
 
     class Meta:
         model = Blog
         fields = [
-            "id",
-            "title",
-            "slug",
-            "author",
-            "category",
+            "id", 
+            "title", 
+            "slug", 
+            "author", 
+            "category", 
             "tags",
-            "content",
-            "image",
-            "is_featured",
-            "is_published",
-            "likes_count",
-            "views_count",
-            "comments",
-            "published_at",
-            "time_since_published",
+            "content", 
+            "image", 
+            "published_at", 
+            "created_at",
+            "views_count", 
+            "comments_count",
+            "user_reaction", 
+            "reaction_counts"
         ]
-
-    def get_time_since_published(self, obj):
-        if obj.published_at:
-            return timesince(obj.published_at) + " ago"
-        return None
