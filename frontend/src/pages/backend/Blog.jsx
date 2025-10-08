@@ -96,14 +96,6 @@ export default function Blog() {
 
     const onlyAdmin = isAdmin(currentUser);
 
-    // Filter blogs based on role
-    const blogPermissions = useMemo(() => {
-        if (!currentUser) return [];
-        if (isAdmin(currentUser)) return blogs;
-        if (isAuthor(currentUser)) return blogs.filter((b) => b.author?.id === currentUser.id);
-        return [];
-    }, [blogs, currentUser]);
-
     // Modal open/close
     const openBlogModal = (blog = null) => {
         if (blog) {
@@ -275,7 +267,7 @@ export default function Blog() {
 
             <Table
                 columns={columns}
-                data={blogPermissions}
+                data={blogs}
                 renderCell={(col, value, row) => {
                     if (col.key === "category") return row.category?.name || "-";
                     if (col.key === "tags") return row.tags?.map(t => t.name).join(", ") || "-";

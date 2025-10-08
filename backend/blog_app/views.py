@@ -127,8 +127,12 @@ class BlogListCreateView(generics.ListCreateAPIView):
             return [permissions.IsAuthenticated(), IsAdminOrAuthor()]
         return [permissions.AllowAny()]
     def get_queryset(self):
+        user = self.request.user
         queryset = Blog.objects.select_related("author", "category").prefetch_related("tags", "views")
 
+        if user.is_authenticated and hasattr(user, "role") and user.role == "AUTHOR":
+            queryset = queryset.filter(author=user)
+            
         # Query params
         search = self.request.query_params.get("search", "").strip()
         category_id = self.request.query_params.get("category_id")

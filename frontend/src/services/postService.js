@@ -39,9 +39,9 @@ export const postService = {
             throw error;
         }
     },
-  async getFeaturedPosts(page=1) {
+  async getFeaturedPosts() {
         try {
-            const response = await api.get(`/blog/blogs/featured/?page=${page}`);
+            const response = await api.get(`/blog/blogs/featured/`);
             return response.data;
         } catch (error) {
             console.error("Error fetching blog posts:", error);
