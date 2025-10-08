@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { blogService } from "../../services/blogService";
 import { categoryService } from "../../services/categoryService";
 import { tagService } from "../../services/tagService";
@@ -15,6 +15,7 @@ import {
 } from "../../utils/permissions";
 
 import Pagination from "../../components/common/Pagination";
+import { Search } from "lucide-react";
 
 export default function Blog() {
     const { currentUser } = useAuth();
@@ -27,6 +28,8 @@ export default function Blog() {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategoryId, setSelectedCategoryId] = useState(0);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -50,37 +53,56 @@ export default function Blog() {
 
     const PAGE_SIZE = 4;
 
-    // Fetch data
-    const getBlogs = async (page=1) => {
-        const data = await blogService.getAllBlogs(page)
-        setBlogs(data.results)
-        setCurrentPage(page)
-        setTotalPages(Math.ceil(data.count / PAGE_SIZE))
+    // Fetch blogs with server-side filters
+    const getBlogs = async (page = 1, search = "", category_id = 0) => {
+        try {
+            const data = await blogService.getAllBlogs(page, {
+            search,
+            category_id,
+            });
+            setBlogs(data.results);
+            setCurrentPage(page);
+            setTotalPages(Math.ceil(data.count / PAGE_SIZE));
+        } catch (error) {
+            console.error("Error fetching blogs:", error);
+        }
     };
+
     const getCategories = async () => {
         const data = await categoryService.getCategoriesNoPagination();
         setCategories(data);
-    } 
+    };
+
     const getTags = async () => {
         const data = await tagService.getAllTagsNoPagination();
-        setTags(data)
-    }
+        setTags(data);
+    };
 
     useEffect(() => {
-        getBlogs();
         getCategories();
         getTags();
+        getBlogs(1, searchTerm, selectedCategoryId);
     }, []);
 
-    
-    const onlyAdmin = isAdmin(currentUser)
+    // Trigger refetch when filters change
+    useEffect(() => {
+        getBlogs(1, searchTerm, selectedCategoryId);
+    }, [searchTerm, selectedCategoryId]);
+
+    const sortedCategories = useMemo(() => {
+        const activeCategories = categories.filter((c) => c.is_active);
+        return [{ id: 0, name: "All" }, ...activeCategories.sort((a, b) => a.name.localeCompare(b.name))];
+    }, [categories]);
+
+    const onlyAdmin = isAdmin(currentUser);
+
     // Filter blogs based on role
-    const filteredBlogs = blogs.filter(blog => {
-        if (!currentUser) return false;
-        if (isAdmin(currentUser)) return true;
-        if (isAuthor(currentUser)) return blog.author?.id === currentUser.id; // critical fix
-        return false;
-    });
+    const blogPermissions = useMemo(() => {
+        if (!currentUser) return [];
+        if (isAdmin(currentUser)) return blogs;
+        if (isAuthor(currentUser)) return blogs.filter((b) => b.author?.id === currentUser.id);
+        return [];
+    }, [blogs, currentUser]);
 
     // Modal open/close
     const openBlogModal = (blog = null) => {
@@ -223,9 +245,37 @@ export default function Blog() {
                 )}
             </div>
 
+            {/* Search + Filter */}
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+                <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
+                <input
+                    type="text"
+                    placeholder="Search blogs..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 dark:text-slate-100"
+                />
+                </div>
+                <div className="md:w-48">
+                <select
+                    value={selectedCategoryId}
+                    onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 font-medium cursor-pointer"
+                    >
+                        {sortedCategories?.map((category) => (
+                            <option key={category.id} value={category.id}>
+                            {category.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+
             <Table
                 columns={columns}
-                data={filteredBlogs}
+                data={blogPermissions}
                 renderCell={(col, value, row) => {
                     if (col.key === "category") return row.category?.name || "-";
                     if (col.key === "tags") return row.tags?.map(t => t.name).join(", ") || "-";

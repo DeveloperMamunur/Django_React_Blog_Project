@@ -16,12 +16,15 @@ export const categoryService = {
         }
     },
 
-    async getAllCategories(page=1, pageSize = 6) {
+    async getAllCategories(page = 1, pageSize = 6, search = "") {
         try {
-            const response = await api.get(`/blog/categories/?page=${page}&page_size=${pageSize}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('access_token')}`
-                }
+            const params = new URLSearchParams({ page, page_size: pageSize });
+            if (search.trim()) params.append("search", search.trim());
+
+            const response = await api.get(`/blog/categories/?${params.toString()}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
             });
             return response.data;
         } catch (error) {

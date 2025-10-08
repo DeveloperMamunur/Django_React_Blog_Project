@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
 from .permissions import IsAdmin
 from .pagination import UserPagination
+from django.db.models import Q
 
 User = get_user_model()
 # Create your views here.
@@ -17,10 +18,31 @@ class RegisterView(generics.CreateAPIView):
 
 
 class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]   # only ADMINs can list users
     pagination_class = UserPagination
+
+    def get_queryset(self):
+        queryset = User.objects.all().order_by("-id")
+
+        # Query params
+        search = self.request.query_params.get("search", "").strip()
+        role = self.request.query_params.get("role", "").strip()
+
+        # Filter by search
+        if search:
+            queryset = queryset.filter(
+                Q(username__icontains=search)
+                | Q(email__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+            )
+
+        # Filter by role (skip 'ALL')
+        if role and role.upper() != "ALL":
+            queryset = queryset.filter(role__iexact=role)
+
+        return queryset
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):

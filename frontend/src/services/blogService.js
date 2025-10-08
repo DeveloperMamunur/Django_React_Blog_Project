@@ -16,11 +16,19 @@ export const blogService = {
         }
     },
 
-    async getAllBlogs(page=1) {
+    async getAllBlogs(page = 1, filters = {}) {
         try {
-            const response = await api.get(`/blog/blogs/?page=${page}`,{
-                headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+            const params = new URLSearchParams({ page });
+
+            if (filters.search) params.append("search", filters.search);
+            if (filters.category_id && filters.category_id !== 0) {
+                params.append("category_id", filters.category_id);
+            }
+
+            const response = await api.get(`/blog/blogs/?${params.toString()}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
             });
+
             return response.data;
         } catch (error) {
             console.error("Error fetching blog posts:", error);

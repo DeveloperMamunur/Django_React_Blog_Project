@@ -15,9 +15,12 @@ export const tagService = {
         }
     },
 
-    async getAllTags(page=1) {
+    async getAllTags(page = 1, pageSize = 7, search = "") {
         try {
-            const response = await api.get(`/blog/tags/?page=${page}`, {
+            const params = new URLSearchParams({ page, page_size: pageSize });
+            if (search.trim()) params.append("search", search.trim());
+
+            const response = await api.get(`/blog/tags/?${params.toString()}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('access_token')}`
                 }

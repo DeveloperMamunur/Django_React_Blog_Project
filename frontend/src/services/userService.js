@@ -2,9 +2,16 @@ import api from "./api";
 
 
 export const userService = {
-    async getAllUser(page=1){
+    async getAllUser(page=1, filters={}) {
         try {
-            const response = await api.get(`/auth/users/?page=${page}`,{
+            const params = new URLSearchParams({ page });
+
+            if (filters.search) params.append("search", filters.search);
+            if (filters.role && filters.role !== "ALL") {
+                params.append("role", filters.role);
+            }
+
+            const response = await api.get(`/auth/users/?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
             });
 

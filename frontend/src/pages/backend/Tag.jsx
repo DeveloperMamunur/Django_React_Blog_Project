@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/useAuth";
 import Table from "../../components/common/Table";
 import Button from "../../components/common/Button";
 import Pagination from "../../components/common/Pagination";
+import { Search } from "lucide-react";
 
 export default function Tag(){
     const {currentUser} = useAuth();
@@ -15,6 +16,7 @@ export default function Tag(){
     const onlyAdmin = isAdmin(currentUser);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
 
      const columns = [
         { key: "name", header: "Name" },
@@ -42,8 +44,8 @@ export default function Tag(){
     };
 
     const pageSize = 7;
-    const getAllTags = async (page=1) => {
-        const response = await tagService.getAllTags(page);
+    const getAllTags = async (page = 1, search = "") => {
+        const response = await tagService.getAllTags(page, pageSize, search);
         setTags(response.results)
         setCurrentPage(page)
         setTotalPages(Math.ceil(response.count / pageSize));
@@ -83,9 +85,12 @@ export default function Tag(){
             }
         };
 
-    useEffect(()=>{
-        getAllTags();
-    }, [])
+     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            getAllTags(1, searchTerm);
+        }, 500); // wait 0.5s after typing
+        return () => clearTimeout(delayDebounce);
+    }, [searchTerm]);
 
     return (
         <div className="p-6">
@@ -119,7 +124,19 @@ export default function Tag(){
                     </form>
 
                     <div className="mt-6">
-                        <h4 className="text-lg font-semibold">All Tags</h4>
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold">All Tags</h4>
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search tag..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-96 pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 dark:text-slate-100"
+                                />
+                            </div>
+                        </div>
                         <Table
                             columns={columns}
                             data={tags}
@@ -160,7 +177,7 @@ export default function Tag(){
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
-                            onPageChange={(page) => getAllTags(page)}
+                            onPageChange={(page) => getAllTags(page, searchTerm)}
                         />
                     </div>
                 </div>

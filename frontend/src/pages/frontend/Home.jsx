@@ -34,7 +34,7 @@ export default function Home() {
 
     const getFeatureBlog = async ()=>{
         const data = await postService.getFeaturedPosts();
-        setFeaturedPosts(data.results);
+        setFeaturedPosts(data);
     }
 
     

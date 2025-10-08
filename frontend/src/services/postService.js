@@ -3,9 +3,16 @@ import api from './api';
 const API_URL = '/blog/posts';
 
 export const postService = {
-  async getAllBlogPosts(page=1) {
+  async getAllBlogPosts(page=1, filters={}) {
         try {
-            const response = await api.get(`/blog/posts/?page=${page}`,{
+            const params = new URLSearchParams({ page });
+
+            if (filters.search) params.append("search", filters.search);
+            if (filters.category_id && filters.category_id !== 0) {
+                params.append("category_id", filters.category_id);
+            }
+
+            const response = await api.get(`/blog/posts/?${params.toString()}`, {
                 headers: { 
                     Authorization: `Bearer ${localStorage.getItem('access_token')}` 
                 }

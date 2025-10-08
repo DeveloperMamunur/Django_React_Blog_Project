@@ -9,22 +9,22 @@ import { postService } from '../../services/postService';
 
 export default function Blogs() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategoryId, setSelectedCategoryId] = useState(0);
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
   const { currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
   const PAGE_SIZE = 6;
 
   // Fetch all blog posts
-  const getAllPosts = async (page = 1) => {
+  const getAllPosts = async (page = 1, search = "", category_id = 0) => {
     try {
-      const data = await postService.getAllBlogPosts(page);
-      console.log('📊 API Response:', data);
-      console.log('📝 First blog:', data.results?.[0]);
-      console.log('👁️ Views count:', data.results?.[0]?.views_count);
-      
+      const data = await postService.getAllBlogPosts(page, {
+        search,
+        category_id,
+      });
       setBlogs(data.results || []);
       setTotalPages(Math.ceil(data.count / PAGE_SIZE));
       setCurrentPage(page);
@@ -42,6 +42,15 @@ export default function Blogs() {
       console.error('Error fetching categories:', error);
     }
   };
+
+  useEffect(() => {
+    getAllPostCategories();
+    getAllPosts(1, searchTerm, selectedCategoryId);
+  }, []);
+
+  useEffect(() => {
+    getAllPosts(1, searchTerm, selectedCategoryId);
+  }, [searchTerm, selectedCategoryId]);
 
   // Handle reaction
   const handleReact = async (blogId, type) => {
@@ -73,36 +82,14 @@ export default function Blogs() {
     }
   };
 
-  const handlePageChange = (page) => {
-    getAllPosts(page);
-  };
-
   // Prepare sorted categories for dropdown
   const sortedCategories = useMemo(() => {
-    const activeCategories = categories.filter(c => c.is_active);
-    return [{ id: 0, name: 'All' }, ...activeCategories.sort((a, b) => a.name.localeCompare(b.name))];
+    const activeCategories = categories.filter((c) => c.is_active);
+    return [{ id: 0, name: "All" }, ...activeCategories.sort((a, b) => a.name.localeCompare(b.name))];
   }, [categories]);
 
   // Filter blogs based on search term and category
-  const filteredBlogs = useMemo(() => {
-    return blogs.filter(blog => {
-      const matchesSearch =
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (blog.tags?.some(tag => tag.name.toLowerCase().includes(searchTerm.toLowerCase())) ?? false);
-
-      const matchesCategory =
-        selectedCategory === 'All' || blog.category?.name === selectedCategory;
-
-      return matchesSearch && matchesCategory;
-    });
-  }, [blogs, searchTerm, selectedCategory]);
-
-
-  useEffect(() => {
-    getAllPosts(1);
-    getAllPostCategories();
-  }, []);
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -121,20 +108,20 @@ export default function Blogs() {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search blogs..."
+              placeholder="Search Posts..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 dark:text-slate-100"
             />
           </div>
           <div className="md:w-48">
             <select
-              value={selectedCategory}
-              onChange={e => setSelectedCategory(e.target.value)}
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 font-medium cursor-pointer"
             >
-              {sortedCategories?.map(category => (
-                <option key={category.id} value={category.name}>
+              {sortedCategories.map((category) => (
+                <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
@@ -144,7 +131,7 @@ export default function Blogs() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {blogs.length > 0
-            ? filteredBlogs.map(blog => (
+            ? blogs.map(blog => (
                 <BlogCard 
                   key={blog.id} 
                   blog={blog} 
@@ -152,26 +139,21 @@ export default function Blogs() {
                   onReact={handleReact}
                 />
               ))
-            : Array.from({ length: 6 }).map((_, index) => <BlogCard key={index} isLoading />)
-          }
+            : (
+              <div className="text-center py-12 md:col-span-2 lg:col-span-3">
+                <p className="text-slate-500 dark:text-slate-400 text-2xl">
+                  No blogs found matching your criteria.
+                </p>
+              </div>
+            )}
         </div>
 
-        {/* No Blogs Found */}
-        {filteredBlogs.length === 0 && blogs.length > 0 && (
-          <div className="text-center py-12">
-            <p className="text-slate-500 dark:text-slate-400 text-lg">
-              No blogs found matching your criteria.
-            </p>
-          </div>
-        )}
-        
-        {blogs.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => getAllPosts(page, searchTerm, selectedCategoryId)}
+        />
+
       </div>
     </div>
   );

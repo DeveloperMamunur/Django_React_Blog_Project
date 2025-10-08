@@ -7,6 +7,7 @@ import CategoryModal from "../../components/modals/CategoryModal";
 import Table from "../../components/common/Table";
 import Button from "../../components/common/Button"; 
 import Pagination from "../../components/common/Pagination";
+import { Search } from "lucide-react";
 
 export default function Category() {
     const { currentUser } = useAuth();
@@ -14,6 +15,7 @@ export default function Category() {
     const [editingCategory, setEditingCategory] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: "" });
+    const [searchTerm, setSearchTerm] = useState('');
 
     const onlyAdmin = isAdmin(currentUser);
 
@@ -65,12 +67,13 @@ export default function Category() {
 
     // Fetch all categories
     const pageSize = 6;
-    const getAllCategories = async (page=1) => {
+
+    const getAllCategories = async (page = 1, search = "") => {
         try {
-            const categories = await categoryService.getAllCategories(page, pageSize);
-            setCategories(categories.results);
+            const data = await categoryService.getAllCategories(page, pageSize, search);
+            setCategories(data.results);
             setCurrentPage(page);
-            setTotalPages(Math.ceil(categories.count / pageSize));
+            setTotalPages(Math.ceil(data.count / pageSize));
         } catch (error) {
             console.error("Error fetching categories:", error);
         }
@@ -106,8 +109,11 @@ export default function Category() {
     };
 
     useEffect(() => {
-        getAllCategories();
-    }, []);
+        const delayDebounce = setTimeout(() => {
+            getAllCategories(1, searchTerm);
+        }, 500); // wait 0.5s after typing
+        return () => clearTimeout(delayDebounce);
+    }, [searchTerm]);
 
     return (
         <div className="p-6">
@@ -117,15 +123,28 @@ export default function Category() {
             </div>
             <div className="flex items-center justify-between mb-6">
                 <div className="w-full mx-auto">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-semibold">Category Management</h2>
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold mb-3">Category Management</h2>
                         {onlyAdmin && (
-                            <button
-                                onClick={() => openCategoryModal()}
-                                className="bg-blue-500 text-white px-4 py-2 rounded"
-                            >
-                                + New Category
-                            </button>
+                            <div className="flex items-center justify-between gap-5">
+                                <div className="flex-1 relative">
+                                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search category..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-96 pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 dark:text-slate-100"
+                                    />
+                                </div>
+                                    
+                                <button
+                                    onClick={() => openCategoryModal()}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                                >
+                                    + New Category
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -172,7 +191,7 @@ export default function Category() {
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
-                            onPageChange={(page) => getAllCategories(page)}
+                            onPageChange={(page) => getAllCategories(page, searchTerm)}
                         />
                     </div>
                 </div>

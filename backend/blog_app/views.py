@@ -22,6 +22,7 @@ from .pagination import CategoryPagination, TagPagination, BlogPagination, Publi
 from django.utils import timezone
 from datetime import timedelta
 from django.db import IntegrityError
+from django.db.models import Q
 
 
 User = get_user_model()
@@ -39,6 +40,20 @@ class CategoryListCreateView(generics.ListCreateAPIView):
         if self.request.method == "POST":  # only ADMIN can create
             return [permissions.IsAuthenticated(), IsAdmin()]
         return [permissions.AllowAny()]
+    
+    def get_queryset(self):
+        queryset = Category.objects.all()
+
+        # Query params
+        search = self.request.query_params.get("search", "").strip()
+
+        # Filter by search
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+            ).distinct()
+            
+        return queryset.order_by("-id")
 
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -69,6 +84,20 @@ class TagListCreateView(generics.ListCreateAPIView):
             return [permissions.IsAuthenticated(), IsAdmin()]
         return [permissions.AllowAny()]
 
+    def get_queryset(self):
+        queryset = Tag.objects.all()
+
+        # Query params
+        search = self.request.query_params.get("search", "").strip()
+
+        # Filter by search
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+            ).distinct()
+            
+        return queryset.order_by("-id")
+
 
 class TagDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Tag.objects.all()
@@ -90,7 +119,6 @@ class TagListNoPagination(generics.ListAPIView):
 # Blog Views for admin and author
 # ---------------------------
 class BlogListCreateView(generics.ListCreateAPIView):
-    queryset = Blog.objects.select_related("author", "category").prefetch_related("tags", "views")
     serializer_class = BlogSerializer
     pagination_class = BlogPagination
 
@@ -98,6 +126,26 @@ class BlogListCreateView(generics.ListCreateAPIView):
         if self.request.method == "POST":  # only ADMIN or AUTHOR can create
             return [permissions.IsAuthenticated(), IsAdminOrAuthor()]
         return [permissions.AllowAny()]
+    def get_queryset(self):
+        queryset = Blog.objects.select_related("author", "category").prefetch_related("tags", "views")
+
+        # Query params
+        search = self.request.query_params.get("search", "").strip()
+        category_id = self.request.query_params.get("category_id")
+
+        # Filter by search
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search)
+                | Q(content__icontains=search)
+                | Q(tags__name__icontains=search)
+            ).distinct()
+
+        # Filter by category_id
+        if category_id and category_id.isdigit():
+            queryset = queryset.filter(category_id=category_id)
+
+        return queryset.order_by("-id")
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -131,25 +179,42 @@ class BlogPostListView(generics.ListAPIView):
     pagination_class = PublicBlogPagination
 
     def get_queryset(self):
-        return (
+        queryset = (
             Blog.objects.filter(is_active=True, is_published=True)
             .select_related("author", "category")
             .prefetch_related(
                 "tags",
                 "views",
                 Prefetch(
-                    'comments',
-                    queryset=Comment.objects.select_related('user')
+                    "comments",
+                    queryset=Comment.objects.select_related("user")
                 ),
                 "reactions"
             )
-            # Optional: Add annotations if you want to sort by counts
-            .annotate(
-                views_count_annotated=Count('views', distinct=True),
-                comments_count_annotated=Count('comments', distinct=True)
-            )
-            .order_by('-published_at', '-created_at')
         )
+
+        search = self.request.query_params.get("search", "").strip()
+        category_id = self.request.query_params.get("category_id")
+
+        # Filter by search
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search)
+                | Q(content__icontains=search)
+                | Q(tags__name__icontains=search)
+            ).distinct()
+
+        # Filter by category_id
+        if category_id and category_id.isdigit():
+            queryset = queryset.filter(category_id=category_id)
+
+        # Add annotation counts before ordering
+        queryset = queryset.annotate(
+            views_count_annotated=Count("views", distinct=True),
+            comments_count_annotated=Count("comments", distinct=True),
+        ).order_by("-published_at", "-created_at")
+
+        return queryset
 
 class BlogPostDetailView(generics.RetrieveAPIView):
 
